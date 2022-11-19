@@ -7,9 +7,9 @@ from typing import NamedTuple
 from typing import Union
 
 import numpy as np
-from fte.utilities import set_attribute
 from fte.simulation.processes import get_kernel
 from fte.simulation.processes import simulate_gaussian_process
+from fte.utilities import set_attribute
 from scipy.special import expit
 
 
