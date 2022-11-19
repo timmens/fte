@@ -16,7 +16,6 @@ dependencies:
   - jupyterlab
   - plotly
   - jax
-  - estimagic
   - scikit-learn
   - tqdm
   - matplotlib
