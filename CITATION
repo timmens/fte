@@ -1,0 +1,6 @@
+@Unpublished{fte2022,
+    Title  = {A Python library for the estimation of functional treatment effects.},
+    Author = {Tim Mensinger},
+    Year   = {2022},
+    Url    = {https://github.com/timmens/fte}
+}

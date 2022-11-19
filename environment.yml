@@ -1,0 +1,55 @@
+name: fte
+
+channels:
+  - conda-forge
+  - nodefaults
+
+dependencies:
+  - python==3.10
+  - pip
+
+  # Dependencies
+  - xarray
+  - pytask
+  - pandas
+  - numpy
+  - jupyterlab
+  - plotly
+  - jax
+  - estimagic
+  - scikit-learn
+  - tqdm
+  - networkx
+  - matplotlib
+
+  # Misc
+  - black
+  - nb_black
+  - ipython
+  - pre-commit
+  - pytest
+  - pytest-cov
+  - pytest-xdist
+  - tox-conda
+  - pdbpp
+  - setuptools_scm
+  - toml
+  - click
+
+  # Documentation
+  - furo
+  - nbsphinx
+  - sphinx
+  - sphinx-autoapi
+  - sphinx-click
+  - sphinx-copybutton
+  - sphinx-panels
+  - sphinxcontrib-bibtex
+  - sphinxext-opengraph
+  - pydata-sphinx-theme>=0.3.0
+  - myst-parser
+
+  - pip:
+    - -e .
+    - blackcellmagic
+    - kaleido

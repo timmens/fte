@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.0"]
+
+
+[tool.setuptools_scm]
+write_to = "src/fte/_version.py"
+
+
+[tool.pytask.ini_options]
+paths = "./src/fte"
+
+
+[tool.interrogate]
+ignore-init-module = true
+ignore-nested-functions = true
+exclude = ["setup.py", "docs", "bld"]
+ignore-regex = ["task_*"]
