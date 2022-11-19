@@ -19,7 +19,6 @@ dependencies:
   - estimagic
   - scikit-learn
   - tqdm
-  - networkx
   - matplotlib
 
   # Misc

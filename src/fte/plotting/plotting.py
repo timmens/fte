@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-import networkx as nx
 import plotly.express as px
 from plotly import graph_objs as go
 
@@ -121,35 +119,3 @@ def plot_df_with_time_axis(df):
 
     fig = px.line(df, x="time", y=df.columns, template="simple_white")
     return fig
-
-
-def plot_dag(path):
-    graph = nx.DiGraph()
-    graph.add_edges_from(
-        [
-            (r"$X_{i1}$", r"$W_i$"),
-            (r"$X_{i2}$", r"$W_i$"),
-            (r"$X_{i2}$", r"$Y_i(t)$"),
-            (r"$X_{i3}$", r"$Y_i(t)$"),
-            (r"$X_{i4}(t)$", r"$Y_i(t)$"),
-            (r"$W_i$", r"$Y_i(t)$"),
-        ]
-    )
-
-    options = {
-        "font_size": 22,
-        "node_size": 4000,
-        "node_color": ["white", "lightblue", "white", "gold", "white", "white"],
-        "edgecolors": "#455A64",
-        "font_color": "#455A64",
-        "edge_color": "#455A64",
-        "linewidths": 2,
-        "width": 2,
-    }
-
-    nx.draw_shell(graph, with_labels=True, **options)
-
-    ax = plt.gca()
-    plt.axis("off")
-    ax.margins(0.10)
-    plt.savefig(path)
