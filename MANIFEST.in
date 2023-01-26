@@ -1,5 +1,7 @@
 include CITATION
 
+recursive-include src *.py
+
 exclude *.yaml
 exclude *.yml
 exclude tox.ini
