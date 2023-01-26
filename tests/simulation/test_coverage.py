@@ -9,7 +9,6 @@ from fte.simulation.processes import simulate_gaussian_process
 @pytest.mark.xfail
 @pytest.mark.parametrize("example", ["regression"])
 def test_coverage_simulation_with_defaults(example):
-
     n_sims = 100
 
     simulation_kwargs = {"n_samples": 1_000, "n_periods": 100, "n_params": 1}

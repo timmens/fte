@@ -9,7 +9,6 @@ from fte.fitting.doubly_robust import fit_func_on_scalar_doubly_robust
 
 
 def get_fitter(fitter, fitter_kwargs=None):
-
     if fitter_kwargs is None:
         fitter_kwargs = {}
 
@@ -58,7 +57,6 @@ def get_fitter(fitter, fitter_kwargs=None):
 
 
 def _fit_func_on_scalar(data=None, *, x=None, y=None, fit_intercept=True):
-
     if data is not None:
         y = data.y
         x = data.x

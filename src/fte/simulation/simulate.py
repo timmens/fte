@@ -310,7 +310,6 @@ def _linear_causal_model_func(coef, features, error):
 
 
 def get_params_simulator(params_simulator):
-
     PARAMS_SIMULATORS = {  # noqa: N806
         "default_regression": _default_regression_params_simulator,
         "increasing_sin": _increasing_sin_regression_params_simulator,
