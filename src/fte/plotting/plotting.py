@@ -3,7 +3,6 @@ from plotly import graph_objs as go
 
 
 def plot_doubly_robust_band(df):
-
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
@@ -37,7 +36,6 @@ def plot_doubly_robust_band(df):
 
 
 def plot_data_presentation(data, indicator):
-
     data = data.query("variable == 'x'")
     data = data.reset_index()
 

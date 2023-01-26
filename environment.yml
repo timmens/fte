@@ -1,8 +1,7 @@
+---
 name: fte
 
-channels:
-  - conda-forge
-  - nodefaults
+channels: [conda-forge, nodefaults]
 
 dependencies:
   - python==3.10
@@ -47,7 +46,4 @@ dependencies:
   - pydata-sphinx-theme>=0.3.0
   - myst-parser
 
-  - pip:
-    - -e .
-    - blackcellmagic
-    - kaleido
+  - pip: [-e ., blackcellmagic, kaleido]

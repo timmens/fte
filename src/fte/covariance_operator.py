@@ -2,7 +2,6 @@ import numpy as np
 
 
 def cov_from_residuals(residuals, x=None, coef_id=None, cov_type="homoskedastic"):
-
     if x is None:
         cov = residuals.T @ residuals / len(residuals)
     else:
