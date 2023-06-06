@@ -10,7 +10,6 @@ def coverage_simulation_study(
     n_cores=1,
     show_progress=True,
 ):
-
     if params_list is None:
         params_list = [{"_id": k} for k in range(n_sims)]
 
