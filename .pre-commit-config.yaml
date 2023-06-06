@@ -5,7 +5,7 @@ repos:
       - id: check-hooks-apply
       - id: check-useless-excludes
   - repo: https://github.com/lyz-code/yamlfix
-    rev: 1.2.0
+    rev: 1.10.0
     hooks:
       - id: yamlfix
 
@@ -35,16 +35,16 @@ repos:
       - id: check-ast
       - id: check-docstring-first
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.28.0
+    rev: v1.32.0
     hooks:
       - id: yamllint
   - repo: https://github.com/psf/black
-    rev: 22.12.0
+    rev: 23.3.0
     hooks:
       - id: black
         language_version: python3.10
   - repo: https://github.com/PyCQA/docformatter
-    rev: v1.5.1
+    rev: v1.7.1
     hooks:
       - id: docformatter
         args:
@@ -55,11 +55,11 @@ repos:
           - '88'
           - --blank
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.230
+    rev: v0.0.270
     hooks:
       - id: ruff
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.6.1
+    rev: 1.7.0
     hooks:
       - id: nbqa-black
       - id: nbqa-ruff
@@ -71,7 +71,7 @@ repos:
         args: [--wrap, '88']
         files: (README\.md)
   - repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v2.2.0
+    rev: v2.3.0
     hooks:
       - id: setup-cfg-fmt
   - repo: https://github.com/mgedmin/check-manifest
