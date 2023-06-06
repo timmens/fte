@@ -32,7 +32,7 @@ def estimate_confidence_band(
     distribution: str = "t",
     n_int: int = 1,
     grid: np.ndarray = None,
-    numerical_options: dict = None,
+    numerical_options: dict[str, Any] = None,
 ):
     """Estimate confidence band from covariance information.
 
@@ -117,14 +117,14 @@ def estimate_confidence_band(
 
 
 def _confidence_band_from_roughness(
-    estimate,
-    cov,
-    roughness_func,
-    alpha,
-    distribution,
-    n_int,
-    grid,
-    numerical_options,
+    estimate: np.ndarray,
+    cov: np.ndarray,
+    roughness_func: callable,
+    alpha: float,
+    distribution: Distributions,
+    n_int: int,
+    grid: np.ndarray,
+    numerical_options: dict[str, Any],
 ):
     """Estimate confidence band from covariance and roughness function.
 
@@ -169,7 +169,12 @@ def _confidence_band_from_roughness(
 # ======================================================================================
 
 
-def _get_roughness_func(grid, cov, interpolator="RectBivariateSpline", info=False):
+def _get_roughness_func(
+    grid: np.ndarray,
+    cov: np.ndarray,
+    interpolator: str = "RectBivariateSpline",
+    info: bool = False,
+):
     """Get the parameter roughness function.
 
     Args:
@@ -484,7 +489,7 @@ def _any_none(*args):
     return bool([arg for arg in args if arg is None])
 
 
-def _cov_to_corr(cov):
+def _cov_to_corr(cov: np.ndarray):
     standard_errors = np.sqrt(np.diag(cov))
     corr = cov.copy()
     corr /= standard_errors.reshape(1, -1)
