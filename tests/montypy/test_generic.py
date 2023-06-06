@@ -1,6 +1,5 @@
 import pytest
-from fte.montypy.generic import generic_simulation_study
-from fte.montypy.generic import get_evaluator
+from fte.montypy.generic import generic_simulation_study, get_evaluator
 
 
 @pytest.mark.parametrize("show_progress", [True, False])
@@ -8,7 +7,10 @@ from fte.montypy.generic import get_evaluator
 @pytest.mark.parametrize("evaluator", ["loop", "joblib"])
 def test_get_evaluator(show_progress, n_cores, evaluator):
     evaluator = get_evaluator(
-        evaluator, func=lambda x: x, n_cores=n_cores, show_progress=show_progress
+        evaluator,
+        func=lambda x: x,
+        n_cores=n_cores,
+        show_progress=show_progress,
     )
     params_list = [{"x": k} for k in [1, 2, 3]]
     got = evaluator(params_list=params_list)

@@ -3,7 +3,7 @@ import numpy as np
 
 def cov_from_residuals(residuals, x=None, coef_id=None, cov_type="homoskedastic"):
     if x is None:
-        cov = residuals.T @ residuals / len(residuals)
+        cov = np.dot(residuals, residuals) / len(residuals)
     else:
         n_points = residuals.shape[1]
         cov_operator = get_covariance_operator(residuals, x=x, cov_type=cov_type)
@@ -49,7 +49,7 @@ def get_covariance_operator(residuals, x, cov_type="homoskedastic"):
     if cov_type not in {"homoskedastic", "HC0", "HC1"}:
         raise ValueError("cov_type must be in {'homoskedastic', 'HC0', 'HC1'}")
 
-    if residuals.ndim != 2 or x.ndim != 2:
+    if residuals.ndim != 2 or x.ndim != 2:  # noqa: PLR2004
         raise ValueError("residuals and x need to be a 2-dimensional array.")
 
     if len(residuals) != len(x):
@@ -63,7 +63,10 @@ def get_covariance_operator(residuals, x, cov_type="homoskedastic"):
     else:
         residuals_outer = _outer_product_along_first_dim(residuals)
         _operator = _get_operator_heteroskedasticity(
-            residuals_outer, information_matrix, x=x, cov_type=cov_type
+            residuals_outer,
+            information_matrix,
+            x=x,
+            cov_type=cov_type,
         )
 
     return _operator
@@ -77,7 +80,11 @@ def _get_operator_homoskedasticity(error_kernel, information_matrix):
 
 
 def _get_operator_heteroskedasticity(
-    residuals_outer, information_matrix, *, x, cov_type
+    residuals_outer,
+    information_matrix,
+    *,
+    x,
+    cov_type,
 ):
     n_samples, n_features = x.shape
     _, _, n_time_points = residuals_outer.shape
@@ -104,8 +111,7 @@ def _get_operator_heteroskedasticity(
             (k, j) if j > k else (j, k)
         )  # switch indices, because we only store one case, and the operator is
         # symmetric.
-        out = operator_triu[idx_lookup[j, k]]
-        return out
+        return operator_triu[idx_lookup[j, k]]
 
     return _operator
 
@@ -121,5 +127,4 @@ def _outer_product_along_first_dim(arr):
 
     """
     products = [np.outer(a, a) for a in arr]
-    out = np.array(products)
-    return out
+    return np.array(products)

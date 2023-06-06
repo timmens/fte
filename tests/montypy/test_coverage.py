@@ -1,8 +1,10 @@
 import numpy as np
 from fte.confidence_bands.bands import Band
-from fte.montypy.coverage import _check_estimate_inside_confidence_interval
-from fte.montypy.coverage import _coverage_results_processor
-from fte.montypy.coverage import coverage_simulation_study
+from fte.montypy.coverage import (
+    _check_estimate_inside_confidence_interval,
+    _coverage_results_processor,
+    coverage_simulation_study,
+)
 from numpy.testing import assert_almost_equal
 
 
@@ -43,7 +45,7 @@ def test_coverage_simulation_study():
         # randomness in _sim_func implies a coverage of 0.25
         rng = np.random.default_rng(seed=_id)
         true = np.array([0, 1])
-        res = {
+        return {
             "true": true,
             "confidence_interval": Band(
                 lower=true + rng.uniform(-1, 1),
@@ -51,7 +53,6 @@ def test_coverage_simulation_study():
                 estimate=None,
             ),
         }
-        return res
 
     res = coverage_simulation_study(n_sims=2_000, sim_func=_sim_func)
     assert_almost_equal(res["processed"]["coverage"], 1 / 4, decimal=2)

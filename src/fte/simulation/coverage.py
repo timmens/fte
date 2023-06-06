@@ -35,25 +35,19 @@ def simulate_coverage_simultaneous_confidence_bands(
         else:
             true = data.params["model_func"]["slopes"][:, band_kwargs["coef_id"]]
 
-        out = {
+        return {
             "true": true,
             "confidence_interval": band,
         }
-        return out
 
-    out = coverage_simulation_study(
+    return coverage_simulation_study(
         n_sims=n_sims,
         sim_func=_sim_func,
         evaluator=evaluator,
         n_cores=n_cores,
         show_progress=show_progress,
     )
-    return out
 
 
 def _get_default_fitter(is_causal):
-    if is_causal:
-        fitter = "func_on_scalar_doubly_robust"
-    else:
-        fitter = "func_on_scalar"
-    return fitter
+    return "func_on_scalar_doubly_robust" if is_causal else "func_on_scalar"

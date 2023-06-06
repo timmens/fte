@@ -5,16 +5,20 @@ from fte.simulation import SIMULATION_EXAMPLES_REGRESSION
 from fte.simulation.coverage import simulate_coverage_simultaneous_confidence_bands
 from fte.simulation.processes import simulate_gaussian_process
 
+COVERAGE_RELATIVE_TOLERANCE = 0.05
+COVERAGE_ABSOLUTE_TOLERANCE = 0.01
 
-@pytest.mark.xfail
+
+@pytest.mark.xfail()
 @pytest.mark.parametrize("example", ["regression"])
 def test_coverage_simulation_with_defaults(example):
     n_sims = 100
+    alpha = 0.05
 
     simulation_kwargs = {"n_samples": 1_000, "n_periods": 100, "n_params": 1}
     band_kwargs = {
         "coef_id": 0,
-        "alpha": 0.05,
+        "alpha": alpha,
         "n_int": 1,
         "distribution": "normal",
         "numerical_options": {"raise_error": False},
@@ -28,10 +32,14 @@ def test_coverage_simulation_with_defaults(example):
     )
 
     assert len(res["raw_results"]) == n_sims
-    assert 0.81 <= res["processed"]["coverage"] <= 0.99
+    assert (
+        (1 - alpha) * (1 - COVERAGE_RELATIVE_TOLERANCE)
+        <= res["processed"]["coverage"]
+        <= (1 - alpha) * (1 + COVERAGE_RELATIVE_TOLERANCE)
+    )
 
 
-@pytest.mark.slow
+@pytest.mark.slow()
 @pytest.mark.parametrize("alpha", [0.01, 0.05])
 def test_coverage_simulation_mean_estimate(alpha):
     rng = np.random.default_rng()
@@ -43,7 +51,10 @@ def test_coverage_simulation_mean_estimate(alpha):
     n_sims = 100
     for _ in range(n_sims):
         error = simulate_gaussian_process(
-            n_samples=n_samples, kernel="RBF", rng=rng, n_periods=n_points
+            n_samples=n_samples,
+            kernel="RBF",
+            rng=rng,
+            n_periods=n_points,
         )
         estimate = error.mean(axis=1)
         cov = error @ error.T / n_samples
@@ -61,4 +72,4 @@ def test_coverage_simulation_mean_estimate(alpha):
             inside += 1
 
     coverage = inside / n_sims
-    assert np.abs(coverage - (1 - alpha)) > -0.01
+    assert np.abs(coverage - (1 - alpha)) <= COVERAGE_ABSOLUTE_TOLERANCE

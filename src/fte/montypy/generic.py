@@ -2,8 +2,7 @@ import contextlib
 from functools import partial
 
 import joblib
-from joblib import delayed
-from joblib import Parallel
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
 
@@ -20,7 +19,10 @@ def generic_simulation_study(
     # ==================================================================================
 
     evaluator = get_evaluator(
-        evaluator, func=sim_func, n_cores=n_cores, show_progress=show_progress
+        evaluator,
+        func=sim_func,
+        n_cores=n_cores,
+        show_progress=show_progress,
     )
 
     raw_results = evaluator(params_list)
@@ -55,7 +57,10 @@ def get_evaluator(evaluator, *, func, n_cores, show_progress):
 
     elif callable(evaluator):
         _evaluator = partial(
-            evaluator, sim_func=func, n_cores=n_cores, show_progress=show_progress
+            evaluator,
+            sim_func=func,
+            n_cores=n_cores,
+            show_progress=show_progress,
         )
     else:
         msg = "evaluator needs to be either callable or in {'loop', 'joblib'}."

@@ -1,5 +1,4 @@
 SIMULATION_EXAMPLES_REGRESSION = {
-    # "name": {"data_process": data_process, "data_process_kwargs": data_process_kwargs}
     "regression": {
         "model_func": "linear",
         "simulate_params": "default_regression",
@@ -32,6 +31,6 @@ SIMULATION_EXAMPLES_CAUSAL = {
 
 
 __all__ = [
-    SIMULATION_EXAMPLES_REGRESSION,
-    SIMULATION_EXAMPLES_CAUSAL,
+    "SIMULATION_EXAMPLES_REGRESSION",
+    "SIMULATION_EXAMPLES_CAUSAL",
 ]

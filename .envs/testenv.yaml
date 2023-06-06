@@ -1,6 +1,8 @@
 ---
 name: fte
-channels: [conda-forge, nodefaults]
+channels:
+  - conda-forge
+  - nodefaults
 dependencies:
   - pip
 
@@ -25,4 +27,5 @@ dependencies:
   - setuptools_scm
   - toml
   - click
-  - pip: [-e ../]
+  - pip:
+      - -e ../

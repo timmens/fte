@@ -1,16 +1,13 @@
 import inspect
 import warnings
-from functools import partial
-from functools import wraps
-from typing import Dict
+from functools import partial, wraps
 from typing import NamedTuple
-from typing import Union
 
 import numpy as np
-from fte.simulation.processes import get_kernel
-from fte.simulation.processes import simulate_gaussian_process
-from fte.utilities import set_attribute
 from scipy.special import expit
+
+from fte.simulation.processes import get_kernel, simulate_gaussian_process
+from fte.utilities import set_attribute
 
 
 class SimulatedData(NamedTuple):
@@ -18,7 +15,7 @@ class SimulatedData(NamedTuple):
 
     y: np.ndarray
     x: np.ndarray
-    params: Dict[str, Union[Dict[str, np.ndarray], np.ndarray]]
+    params: dict[str, dict[str, np.ndarray] | np.ndarray]
     has_intercept: bool
     is_causal: bool = False
     treatment_status: np.ndarray = None
@@ -47,6 +44,7 @@ def get_data_simulator(
         kernel (str, callable): Default "RBF".
         kernel_kwargs (dict): Default None.
         heteroskedastic (bool): Default False.
+        error_scale (float): Scaling of the error term. Default 1.0.
         has_intercept (bool): Default True.
         template (str, callable): Default "default_template".
 
@@ -75,7 +73,7 @@ def get_data_simulator(
     else:
         raise ValueError(
             f"Invalid data_process: {template}. Must be one of "
-            f"{list(IMPLEMENTED_SIMULATOR_TEMPLATES)} or a callable."
+            f"{list(IMPLEMENTED_SIMULATOR_TEMPLATES)} or a callable.",
         )
 
     # Get model building blocks
@@ -111,7 +109,7 @@ def get_data_simulator(
     if problematic:
         raise ValueError(
             "The following mandatory arguments are missing in "
-            f"{_simulator_template_name}: {problematic}."
+            f"{_simulator_template_name}: {problematic}.",
         )
 
     valid_options = args
@@ -126,7 +124,8 @@ def get_data_simulator(
     if ignored:
         warnings.warn(
             "The following options were ignored because they are not compatible "
-            f"with {_simulator_template_name}:\n\n {ignored}"
+            f"with {_simulator_template_name}:\n\n {ignored}",
+            stacklevel=1,
         )
 
     # Consolidate output
@@ -177,7 +176,9 @@ def _data_simulator_template(
 
     if model_func.is_causal:
         treatment_status, propensity_score = simulate_treatment_status(
-            features=features, coef=params["treatment_status"], rng=rng
+            features=features,
+            coef=params["treatment_status"],
+            rng=rng,
         )
         treatment_effect = compute_treatment_effect(
             features=features,
@@ -198,11 +199,10 @@ def _data_simulator_template(
     )
     if model_func.is_causal:
         data = data._replace(
-            **{
-                "is_causal": True,
-                "treatment_status": treatment_effect,
-                "propensity_score": propensity_score,
-            }
+            is_causal=True,
+            treatment_status=treatment_status,
+            treatment_effect=treatment_effect,
+            propensity_score=propensity_score,
         )
     return data
 
@@ -274,7 +274,7 @@ def get_model_func(model_func, model_func_kwargs):
     return out
 
 
-@set_attribute("is_causal", False)
+@set_attribute("is_causal", value=False)
 def _linear_model_func(coef, features, error):
     """Linear model.
 
@@ -289,7 +289,7 @@ def _linear_model_func(coef, features, error):
     return outcome
 
 
-@set_attribute("is_causal", True)
+@set_attribute("is_causal", value=True)
 def _linear_causal_model_func(coef, features, error):
     """Linear model with potential outcomes.
 
@@ -322,13 +322,16 @@ def get_params_simulator(params_simulator):
         simulator = params_simulator
     else:
         raise ValueError(
-            f"params_simulator must be callable or in {PARAMS_SIMULATORS.keys()}"
+            f"params_simulator must be callable or in {PARAMS_SIMULATORS.keys()}",
         )
     return simulator
 
 
 def _default_regression_params_simulator(
-    n_params, has_intercept, n_periods=None, grid=None
+    n_params,
+    has_intercept,
+    n_periods=None,
+    grid=None,
 ):
     if grid is None and n_periods is None:
         raise ValueError("One of grid and n_periods needs to be non-None.")
@@ -340,12 +343,14 @@ def _default_regression_params_simulator(
     if has_intercept:
         model_func_params["intercept"] = -np.ones((n_periods, 1))
 
-    params = {"model_func": model_func_params}
-    return params
+    return {"model_func": model_func_params}
 
 
 def _increasing_sin_regression_params_simulator(
-    n_params, has_intercept, n_periods=None, grid=None
+    n_params,
+    has_intercept,
+    n_periods=None,
+    grid=None,
 ):
     if grid is None and n_periods is None:
         raise ValueError("One of grid and n_periods needs to be non-None.")
@@ -358,8 +363,7 @@ def _increasing_sin_regression_params_simulator(
     if has_intercept:
         model_func_params["intercept"] = -np.ones((n_periods, 1))
 
-    params = {"model_func": model_func_params}
-    return params
+    return {"model_func": model_func_params}
 
 
 def _causal_params_coef_simulator(n_params, has_intercept, n_periods=None, grid=None):
@@ -391,16 +395,14 @@ def get_feature_simulator(feature_simulator):
         simulator = feature_simulator
     else:
         raise ValueError(
-            f"feature_simulator must be callable or in {FEATURE_SIMULATORS.keys()}"
+            f"feature_simulator must be callable or in {FEATURE_SIMULATORS.keys()}",
         )
     return simulator
 
 
 def _uniform_feature_simulator(n_samples, n_params, rng):
-    x = rng.uniform(size=(n_samples, n_params))
-    return x
+    return rng.uniform(size=(n_samples, n_params))
 
 
 def _normal_feature_simulator(n_samples, n_params, rng):
-    x = rng.normal(size=(n_samples, n_params))
-    return x
+    return rng.normal(size=(n_samples, n_params))

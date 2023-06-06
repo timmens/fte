@@ -2,18 +2,18 @@ import plotly.express as px
 from plotly import graph_objs as go
 
 
-def plot_doubly_robust_band(df):
+def plot_doubly_robust_band(data):
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
-            x=df.index.to_list() + df.index.to_list()[::-1],
-            y=df.upper.to_list() + df.lower.to_list()[::-1],
+            x=data.index.to_list() + data.index.to_list()[::-1],
+            y=data.upper.to_list() + data.lower.to_list()[::-1],
             fill="toself",
             line={"width": 0.5, "color": "steelblue"},
-        )
+        ),
     )
     fig.add_trace(
-        go.Scatter(x=df.index, y=df.estimate, line_color="goldenrod", line_width=4)
+        go.Scatter(x=data.index, y=data.estimate, line_color="goldenrod", line_width=4),
     )
 
     fig.add_annotation(x=8, y=0.3, text=r"$Nm/Kg$", showarrow=False, font_size=22)
@@ -40,7 +40,7 @@ def plot_data_presentation(data, indicator):
     data = data.reset_index()
 
     indicator["strike_indicator"] = indicator["strike_indicator"].map(
-        {0: "Heel", 1: "Forefoot"}
+        {0: "Heel", 1: "Forefoot"},
     )
 
     data = data.merge(indicator)
@@ -85,14 +85,18 @@ def plot_data_presentation(data, indicator):
 
 
 def plot_functional_sample(
-    df, color_discrete_sequence=None, *, y="moment", opacity=0.2
+    data,
+    color_discrete_sequence=None,
+    *,
+    y="moment",
+    opacity=0.2,
 ):
-    df = df.reset_index()
-    if not {"time", "id"} <= set(df.columns):
+    data = data.reset_index()
+    if not {"time", "id"} <= set(data.columns):
         msg = "'time' and 'id' needs to be either a column or an index of df."
         raise ValueError(msg)
     fig = px.line(
-        df,
+        data,
         x="time",
         y=y,
         color="id",
@@ -107,13 +111,12 @@ def plot_functional_sample(
     return fig
 
 
-def plot_df_with_time_axis(df):
-    if "time" not in df:
-        if "time" in df.index.names:
-            df = df.reset_index()
+def plot_df_with_time_axis(data):
+    if "time" not in data:
+        if "time" in data.index.names:
+            data = data.reset_index()
         else:
             msg = "df does not contain a time index."
             raise ValueError(msg)
 
-    fig = px.line(df, x="time", y=df.columns, template="simple_white")
-    return fig
+    return px.line(data, x="time", y=data.columns, template="simple_white")

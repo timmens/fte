@@ -1,10 +1,12 @@
 import numpy as np
 import pytest
-from fte.confidence_bands.bands import _any_none
-from fte.confidence_bands.bands import _constant_band_adjustment
-from fte.confidence_bands.bands import _cov_to_corr
-from fte.confidence_bands.bands import _get_moment_generating_func
-from fte.confidence_bands.bands import _get_roughness_func
+from fte.confidence_bands.bands import (
+    _any_none,
+    _constant_band_adjustment,
+    _cov_to_corr,
+    _get_moment_generating_func,
+    _get_roughness_func,
+)
 from fte.simulation.simulate import get_kernel
 from numpy.testing import assert_array_almost_equal as aaae
 from scipy import stats
@@ -45,7 +47,7 @@ def test_constant_band_zero_roughness(alpha, distribution):
     # test case follows from formulae when integral of roughness function is zero
     quantile = distribution.ppf(1 - alpha / 2)
     value = _constant_band_adjustment(
-        roughness_func=lambda _: 0,  # noqa: U101
+        roughness_func=lambda _: 0,
         alpha=alpha,
         distribution=distribution,
         grid=np.linspace(0, 1, num=2),
@@ -61,7 +63,7 @@ TEST_CASES = [
 ]
 
 
-@pytest.mark.parametrize("distribution, x, expected", TEST_CASES)
+@pytest.mark.parametrize(("distribution", "x", "expected"), TEST_CASES)
 def test_get_moment_generating_func(distribution, x, expected):
     mgf = _get_moment_generating_func(distribution)
     got = mgf(x)
