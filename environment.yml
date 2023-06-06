@@ -1,8 +1,6 @@
 ---
 name: fte
-
 channels: [conda-forge, nodefaults]
-
 dependencies:
   - python==3.10
   - pip
@@ -27,7 +25,6 @@ dependencies:
   - pytest
   - pytest-cov
   - pytest-xdist
-  - tox-conda
   - pdbpp
   - setuptools_scm
   - toml
@@ -45,5 +42,4 @@ dependencies:
   - sphinxext-opengraph
   - pydata-sphinx-theme>=0.3.0
   - myst-parser
-
   - pip: [-e ., blackcellmagic, kaleido]
