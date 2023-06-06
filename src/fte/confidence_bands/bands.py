@@ -371,7 +371,6 @@ def _nonconstant_band_adjustment(
     pwl_func = _get_piecewise_linear_function(n_int)
 
     for j in range(1, n_int):
-
         root_func = _get_root_func_j(
             j, coef, n_int, pwl_func, knots, roughness_func, distribution, alpha
         )
