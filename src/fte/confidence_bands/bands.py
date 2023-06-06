@@ -9,7 +9,7 @@ from fte.config import MAX_INTEGRATION_ERROR
 from fte.covariance_operator import cov_from_residuals
 from fte.simulation.simulate import SimulatedData
 
-Distributions = Union[norm, t]  # noqa: UP007
+Distributions = Union[norm, t]
 
 
 class Band(NamedTuple):

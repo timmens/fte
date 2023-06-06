@@ -1,7 +1,7 @@
 import inspect
 import warnings
 from functools import partial, wraps
-from typing import NamedTuple
+from typing import NamedTuple, Union
 
 import numpy as np
 from scipy.special import expit
@@ -15,7 +15,7 @@ class SimulatedData(NamedTuple):
 
     y: np.ndarray
     x: np.ndarray
-    params: dict[str, dict[str, np.ndarray] | np.ndarray]
+    params: dict[str, Union[dict[str, np.ndarray], np.ndarray]]
     has_intercept: bool
     is_causal: bool = False
     treatment_status: np.ndarray = None
