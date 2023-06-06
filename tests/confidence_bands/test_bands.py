@@ -26,7 +26,7 @@ def test_any_none():
 
 @pytest.mark.parametrize("length_scale", [1 / np.sqrt(2), 1, np.sqrt(2)])
 @pytest.mark.parametrize("num", [50, 100, 150])
-@pytest.mark.parametrize("interpolator", ["RectBivariateSpline", "interp2d"])
+@pytest.mark.parametrize("interpolator", ["RectBivariateSpline"])
 def test_roughness_func(length_scale, num, interpolator):
     grid = np.linspace(0, 1, num=num)
     kernel = get_kernel(kernel_name="RBF", kernel_kwargs={"length_scale": length_scale})

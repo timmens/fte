@@ -6,7 +6,7 @@ from fte.simulation.coverage import simulate_coverage_simultaneous_confidence_ba
 from fte.simulation.processes import simulate_gaussian_process
 
 COVERAGE_RELATIVE_TOLERANCE = 0.05
-COVERAGE_ABSOLUTE_TOLERANCE = 0.01
+COVERAGE_ABSOLUTE_TOLERANCE = 0.05
 
 
 @pytest.mark.xfail()

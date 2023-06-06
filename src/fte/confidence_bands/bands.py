@@ -176,7 +176,7 @@ def _get_roughness_func(grid, cov, interpolator="RectBivariateSpline", info=Fals
         grid (np.ndarray): Time grid. Default None.
         cov (np.ndarray): The estimated covariance matrix.
         interpolator (str or callable): The interpolator which is used to smooth
-            the covariance matrix. Implemented are {"interp2d", "RectBivariateSpline"}.
+            the covariance matrix. Implemented are {"RectBivariateSpline"}.
             Default is RectBivariateSpline.
         info (bool): Add extra information to output function.
 
@@ -187,7 +187,6 @@ def _get_roughness_func(grid, cov, interpolator="RectBivariateSpline", info=Fals
     # Validate inputs
     # ==================================================================================
     built_in_interpolator = {
-        "interp2d": partial(interpolate.interp2d, kind="cubic"),
         "RectBivariateSpline": interpolate.RectBivariateSpline,
     }
 
@@ -204,10 +203,11 @@ def _get_roughness_func(grid, cov, interpolator="RectBivariateSpline", info=Fals
     # ==================================================================================
     corr = _cov_to_corr(cov)
     smooth_corr = interpolator(grid, grid, corr)
+    smooth_corr_deriv = smooth_corr.partial_derivative(dx=1, dy=1)
 
     @np.vectorize
     def _roughness(t):
-        return np.sqrt(smooth_corr(t, t, dx=1, dy=1))
+        return np.sqrt(smooth_corr_deriv(t, t))
 
     if info:
         info = {"smooth_corr": smooth_corr, "interpolator_name": _name}
@@ -338,9 +338,12 @@ def _get_moment_generating_func(distribution):
     try:
         name = distribution.name
     except AttributeError:
-        name = distribution.dist.name
-    else:
-        raise ValueError("distribution has to be a scipy.stats distribution.")
+        try:
+            name = distribution.dist.name
+        except AttributeError:
+            raise ValueError(
+                "distribution has to be a scipy.stats distribution.",
+            ) from None
 
     def _normal(x):
         return np.exp(-(x**2) / 2)
