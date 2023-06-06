@@ -22,13 +22,13 @@ jobs:
       - uses: actions/checkout@v3
       - uses: r-lib/actions/setup-tinytex@v2
       - name: create build environment
-        uses: mamba-org/provision-with-micromamba@v16
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: ./.envs/testenv.yml
           environment-name: fte
-          cache-env: true
-          extra-specs: |
+          create-args: >-
             python=${{ matrix.python-version }}
+          cache-environment: true
       - name: Install marp.
         shell: bash -l {0}
         run: npm install -g @marp-team/marp-cli@2.2.0
