@@ -13,4 +13,4 @@ coverage:
     project:
       default:
         target: 60%
-ignore: [.tox/**/*, release.py, setup.py, fte/tests/**/*]
+ignore: [release.py, setup.py, fte/tests/**/*]
