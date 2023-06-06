@@ -1,21 +1,15 @@
 from functools import partial
-from typing import Any
-from typing import Dict
-from typing import NamedTuple
-from typing import Tuple
-from typing import Union
+from typing import Any, NamedTuple, Union
 
 import numpy as np
+from scipy import integrate, interpolate, optimize
+from scipy.stats import norm, t
+
+from fte.config import MAX_INTEGRATION_ERROR
 from fte.covariance_operator import cov_from_residuals
 from fte.simulation.simulate import SimulatedData
-from scipy import integrate
-from scipy import interpolate
-from scipy import optimize
-from scipy.stats import norm
-from scipy.stats import t
 
-
-MAX_INTEGRATION_ERROR = 1e-7
+Distributions = Union[norm, t]
 
 
 class Band(NamedTuple):
@@ -27,7 +21,7 @@ class Band(NamedTuple):
 
 
 def estimate_confidence_band(
-    result: Dict = None,
+    result: dict = None,
     estimate: np.ndarray = None,
     cov: np.ndarray = None,
     coef_id: int = None,
@@ -38,7 +32,7 @@ def estimate_confidence_band(
     distribution: str = "t",
     n_int: int = 1,
     grid: np.ndarray = None,
-    numerical_options: Dict = None,
+    numerical_options: dict = None,
 ):
     """Estimate confidence band from covariance information.
 
@@ -48,6 +42,10 @@ def estimate_confidence_band(
         n_samples (int): Number of samples used to generate estimates. Default None.
         cov (np.ndarray): Covariance of estimate. 2d array of shape (n_points, n_points)
             Default None.
+        coef_id (int): Index of coefficient to estimate band for. Default None.
+        data (SimulatedData): Simulated data object. Default None.
+        n_samples (int): Number of samples used to generate estimates. Default None.
+        cov_type (str): Type of covariance to use. Default 'homoskedastic'.
         alpha (float): Confidence level. Must be in (0, 1). Default 0.05.
         distribution (scipy.stats.rv_continous): A scipy.stats distribution.
             Currently only t and normal distribution are supported.
@@ -84,7 +82,10 @@ def estimate_confidence_band(
         residuals = data.y - y_predicted
         estimate = slopes[:, coef_id]
         cov = cov_from_residuals(
-            residuals=residuals, x=data.x, coef_id=coef_id, cov_type=cov_type
+            residuals=residuals,
+            x=data.x,
+            coef_id=coef_id,
+            cov_type=cov_type,
         )
     else:
         msg = (
@@ -103,7 +104,7 @@ def estimate_confidence_band(
 
     # Estimate confidence band
     # ==================================================================================
-    band = _confidence_band_from_roughness(
+    return _confidence_band_from_roughness(
         estimate=estimate,
         roughness_func=roughness_func,
         cov=cov,
@@ -113,11 +114,17 @@ def estimate_confidence_band(
         grid=grid,
         numerical_options=numerical_options,
     )
-    return band
 
 
 def _confidence_band_from_roughness(
-    estimate, cov, roughness_func, alpha, distribution, n_int, grid, numerical_options
+    estimate,
+    cov,
+    roughness_func,
+    alpha,
+    distribution,
+    n_int,
+    grid,
+    numerical_options,
 ):
     """Estimate confidence band from covariance and roughness function.
 
@@ -129,9 +136,10 @@ def _confidence_band_from_roughness(
         distribution (scipy.stats.rv_continous): A scipy.stats distribution.
             Currently only t and normal distribution are supported.
         n_int (int): Number of intervals to use in computation of band adjustment.
+        grid (np.ndarray): Time grid. Default None.
         numerical_options (dict): Options kwargs unpacked in _constant_band_adjustment.
-            Can contain keys ['root_method', 'root_options', 'root_options',
-            'raise_error']. See docstring of function for details.
+            Can contain keys ['root_method', 'root_options', 'raise_error']. See
+            docstring of function for details.
 
     """
     if n_int == 1:
@@ -153,8 +161,7 @@ def _confidence_band_from_roughness(
     lower = estimate - adjustment * np.sqrt(np.diag(cov))
     upper = estimate + adjustment * np.sqrt(np.diag(cov))
 
-    band = Band(lower=lower, upper=upper, estimate=estimate.copy())
-    return band
+    return Band(lower=lower, upper=upper, estimate=estimate.copy())
 
 
 # ======================================================================================
@@ -169,7 +176,7 @@ def _get_roughness_func(grid, cov, interpolator="RectBivariateSpline", info=Fals
         grid (np.ndarray): Time grid. Default None.
         cov (np.ndarray): The estimated covariance matrix.
         interpolator (str or callable): The interpolator which is used to smooth
-            the covariance matrix. Implemented are {"interp2d", "RectBivariateSpline"}.
+            the covariance matrix. Implemented are {"RectBivariateSpline"}.
             Default is RectBivariateSpline.
         info (bool): Add extra information to output function.
 
@@ -179,9 +186,7 @@ def _get_roughness_func(grid, cov, interpolator="RectBivariateSpline", info=Fals
     """
     # Validate inputs
     # ==================================================================================
-
     built_in_interpolator = {
-        "interp2d": partial(interpolate.interp2d, kind="cubic"),
         "RectBivariateSpline": interpolate.RectBivariateSpline,
     }
 
@@ -196,13 +201,13 @@ def _get_roughness_func(grid, cov, interpolator="RectBivariateSpline", info=Fals
 
     # Compute roughness function
     # ==================================================================================
-
     corr = _cov_to_corr(cov)
     smooth_corr = interpolator(grid, grid, corr)
+    smooth_corr_deriv = smooth_corr.partial_derivative(dx=1, dy=1)
 
     @np.vectorize
     def _roughness(t):
-        return np.sqrt(smooth_corr(t, t, dx=1, dy=1))
+        return np.sqrt(smooth_corr_deriv(t, t))
 
     if info:
         info = {"smooth_corr": smooth_corr, "interpolator_name": _name}
@@ -219,11 +224,11 @@ def _get_roughness_func(grid, cov, interpolator="RectBivariateSpline", info=Fals
 def _constant_band_adjustment(
     roughness_func: callable,
     alpha: float,
-    distribution: Union[norm, t],
+    distribution: Distributions,
     grid: np.ndarray,
     root_method: str = "brentq",
-    root_bracket: Tuple[float] = (0.0, 15.0),
-    root_options: Dict[str, Any] = None,
+    root_bracket: tuple[float] = (0.0, 15.0),
+    root_options: dict[str, Any] = None,
     raise_error: bool = True,
 ):
     """Get the band adjustment for the constant case.
@@ -253,7 +258,9 @@ def _constant_band_adjustment(
     # Integrate roughness function
     # ==================================================================================
     integrated_roughness, integration_error = integrate.quad(
-        roughness_func, a=grid.min(), b=grid.max()
+        roughness_func,
+        a=grid.min(),
+        b=grid.max(),
     )
 
     if raise_error and integration_error > MAX_INTEGRATION_ERROR:
@@ -280,7 +287,10 @@ def _constant_band_adjustment(
     # Find root
     # ==================================================================================
     res = optimize.root_scalar(
-        root_func, method=root_method, bracket=root_bracket, **root_options
+        root_func,
+        method=root_method,
+        bracket=root_bracket,
+        **root_options,
     )
 
     if raise_error and not res.converged:
@@ -296,7 +306,7 @@ def _constant_band_adjustment(
 def _root_func(x, alpha, distribution, integrated_roughness, mgf):
     r"""Calculate function values.
 
-    _root_func(x) = P[X > x] + (\int tau(t) dt) MGF(x) / (2 pi) - alpha / 2
+    _root_func(x) = P[X > x] + (\int roughness(t) dt) MGF(x) / (2 \pi) - \alpha / 2
 
     Args:
         x (float or np.ndarray): Function input.
@@ -311,8 +321,7 @@ def _root_func(x, alpha, distribution, integrated_roughness, mgf):
         float or np.ndarray: Function value. If x is an np.ndarray so is the output.
 
     """
-    out = distribution.sf(x) + integrated_roughness * mgf(x) / (2 * np.pi) - alpha / 2
-    return out
+    return distribution.sf(x) + integrated_roughness * mgf(x) / (2 * np.pi) - alpha / 2
 
 
 def _get_moment_generating_func(distribution):
@@ -329,7 +338,12 @@ def _get_moment_generating_func(distribution):
     try:
         name = distribution.name
     except AttributeError:
-        name = distribution.dist.name
+        try:
+            name = distribution.dist.name
+        except AttributeError:
+            raise ValueError(
+                "distribution has to be a scipy.stats distribution.",
+            ) from None
 
     def _normal(x):
         return np.exp(-(x**2) / 2)
@@ -355,7 +369,7 @@ def _get_moment_generating_func(distribution):
 def _nonconstant_band_adjustment(
     roughness_func: callable,
     alpha: float,
-    distribution: Union[norm, t],
+    distribution: Distributions,
     n_int: int,
     grid: np.ndarray,
 ):
@@ -372,7 +386,14 @@ def _nonconstant_band_adjustment(
 
     for j in range(1, n_int):
         root_func = _get_root_func_j(
-            j, coef, n_int, pwl_func, knots, roughness_func, distribution, alpha
+            j,
+            coef,
+            n_int,
+            pwl_func,
+            knots,
+            roughness_func,
+            distribution,
+            alpha,
         )
         root = optimize.brentq(root_func, a=-20.0, b=20.0)
         coef[j] = root
@@ -382,10 +403,7 @@ def _nonconstant_band_adjustment(
 
 
 def _get_root_func_j(j, coef, n_int, pwl_func, knots, tau_f, distribution, alpha):
-    if j == 1:
-        coef_sum = 0
-    else:
-        coef_sum = coef[1:j]
+    coef_sum = 0 if j == 1 else coef[1:j]
 
     def ufun_j(t, x):
         _coef = coef.copy()
@@ -393,32 +411,29 @@ def _get_root_func_j(j, coef, n_int, pwl_func, knots, tau_f, distribution, alpha
         return pwl_func(t=t, coef=_coef, knots=knots)
 
     def fn1(t, cj):
-        out = (
+        return (
             tau_f(t)
             / (2 * np.pi)
             * np.exp(-ufun_j(t, cj) ** 2 / 2)
             * np.exp(-np.sum([coef_sum, cj])) ** 2
             / (2 * tau_f(t) ** 2)
         )
-        return out
 
     def fn2(t, cj):
-        out = (
+        return (
             np.sum([coef_sum, cj])
             / np.sqrt(2 * np.pi)
             * np.exp(-ufun_j(t, cj) ** 2 / 2)
             * distribution.cdf(np.sum([coef_sum, cj]) / tau_f(t))
         )
-        return out
 
     def fn3(t, cj):
-        out = (
+        return (
             np.sum([coef_sum, cj])
             / np.sqrt(2 * np.pi)
             * np.exp(-ufun_j(t, cj) ** 2 / 2)
             * distribution.cdf(-np.sum([coef_sum, cj]) / tau_f(t))
         )
-        return out
 
     def _root_func(x):
         integr1, _ = integrate.quad(partial(fn1, cj=x), a=knots[j], b=knots[j + 1])
@@ -465,8 +480,8 @@ def _get_piecewise_linear_function(n_int):
 # ======================================================================================
 
 
-def _any_none(*vars):
-    return bool([var for var in vars if var is None])
+def _any_none(*args):
+    return bool([arg for arg in args if arg is None])
 
 
 def _cov_to_corr(cov):

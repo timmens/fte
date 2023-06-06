@@ -1,9 +1,11 @@
 import numpy as np
 import pytest
-from fte.covariance_operator import _get_operator_homoskedasticity
-from fte.covariance_operator import _outer_product_along_first_dim
-from fte.covariance_operator import cov_from_residuals
-from fte.covariance_operator import get_covariance_operator
+from fte.covariance_operator import (
+    _get_operator_homoskedasticity,
+    _outer_product_along_first_dim,
+    cov_from_residuals,
+    get_covariance_operator,
+)
 from numpy.testing import assert_array_almost_equal as aaae
 from numpy.testing import assert_array_equal
 

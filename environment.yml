@@ -1,6 +1,8 @@
 ---
 name: fte
-channels: [conda-forge, nodefaults]
+channels:
+  - conda-forge
+  - nodefaults
 dependencies:
   - python==3.11
   - pip
@@ -26,4 +28,6 @@ dependencies:
   - setuptools_scm
   - toml
   - click
-  - pip: [-e ., blackcellmagic]
+  - pip:
+      - -e .
+      - blackcellmagic

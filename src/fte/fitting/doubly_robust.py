@@ -2,17 +2,24 @@ from typing import NamedTuple
 
 import numpy as np
 import pandas as pd
-from sklearn.base import is_classifier
-from sklearn.base import is_regressor
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import LogisticRegression
-from sklearn.linear_model import RidgeCV
+from sklearn.base import is_classifier, is_regressor
+from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
 
 class TreatmentData(NamedTuple):
+    """Treament data container.
+
+    Attributes:
+        x (np.ndarray): Feature matrix of the sample.
+        x_other (np.ndarray): Feature matrix of the other sample.
+        y (np.ndarray): Outcome vector.
+        t (np.ndarray): Treatment vector.
+
+    """
+
     x: np.ndarray
     x_other: np.ndarray  # feature matrix of the other sample
     y: np.ndarray
@@ -74,14 +81,26 @@ def fit_func_on_scalar_doubly_robust(
     # Sample splitting
 
     x_0, x_1, y_0, y_1, t_0, t_1 = train_test_split(
-        x, y, t, test_size=0.5, random_state=seed
+        x,
+        y,
+        t,
+        test_size=0.5,
+        random_state=seed,
     )
 
     sample0 = TreatmentData(
-        x=x_0, x_other=x_1, y=y_0, t=t_0, t_bool=t_0.astype(bool).flatten()
+        x=x_0,
+        x_other=x_1,
+        y=y_0,
+        t=t_0,
+        t_bool=t_0.astype(bool).flatten(),
     )
     sample1 = TreatmentData(
-        x=x_1, x_other=x_0, y=y_1, t=t_1, t_bool=t_1.astype(bool).flatten()
+        x=x_1,
+        x_other=x_0,
+        y=y_1,
+        t=t_1,
+        t_bool=t_1.astype(bool).flatten(),
     )
 
     # ==================================================================================
@@ -112,14 +131,14 @@ def fit_func_on_scalar_doubly_robust(
 
     mean_1 = [
         pipe.fit(sample.x[sample.t_bool], sample.y[sample.t_bool]).predict(
-            sample.x_other
+            sample.x_other,
         )
         for sample in (sample0, sample1)
     ]
 
     mean_0 = [
         pipe.fit(sample.x[~sample.t_bool], sample.y[~sample.t_bool]).predict(
-            sample.x_other
+            sample.x_other,
         )
         for sample in (sample0, sample1)
     ]
@@ -129,17 +148,33 @@ def fit_func_on_scalar_doubly_robust(
     # ==================================================================================
 
     effect_0 = _compute_treatment_effect(
-        sample0.y, sample0.t, mean_1[1], mean_0[1], ps[1]
+        sample0.y,
+        sample0.t,
+        mean_1[1],
+        mean_0[1],
+        ps[1],
     )
     effect_1 = _compute_treatment_effect(
-        sample1.y, sample1.t, mean_1[0], mean_0[0], ps[0]
+        sample1.y,
+        sample1.t,
+        mean_1[0],
+        mean_0[0],
+        ps[0],
     )
 
     kernel_0 = _compute_treatment_effect_kernel(
-        sample0.y, sample0.t, mean_1[1], mean_0[1], ps[1]
+        sample0.y,
+        sample0.t,
+        mean_1[1],
+        mean_0[1],
+        ps[1],
     )
     kernel_1 = _compute_treatment_effect_kernel(
-        sample1.y, sample1.t, mean_1[0], mean_0[0], ps[0]
+        sample1.y,
+        sample1.t,
+        mean_1[0],
+        mean_0[0],
+        ps[0],
     )
 
     effect = 0.5 * (effect_0 + effect_1)
@@ -153,17 +188,16 @@ def fit_func_on_scalar_doubly_robust(
         effect = pd.DataFrame(effect, columns=["value"], index=index)
         kernel = pd.DataFrame(kernel, columns=index, index=index)
 
-    out = {"treatment_effect": effect, "cov": kernel, "ps": ps, "n_samples": len(y)}
-    return out
+    return {"treatment_effect": effect, "cov": kernel, "ps": ps, "n_samples": len(y)}
 
 
 def _compute_treatment_effect(y, t, mean_1, mean_0, ps):
     t = t.reshape(-1, 1)
 
-    treatment_effect = np.mean(t * (y - mean_1) / ps + mean_1, axis=0) - np.mean(
-        (1 - t) * (y - mean_0) / (1 - ps) + mean_0, axis=0
+    return np.mean(t * (y - mean_1) / ps + mean_1, axis=0) - np.mean(
+        (1 - t) * (y - mean_0) / (1 - ps) + mean_0,
+        axis=0,
     )
-    return treatment_effect
 
 
 def _compute_treatment_effect_kernel(y, t, mean_1, mean_0, ps):
@@ -180,8 +214,7 @@ def _compute_treatment_effect_kernel(y, t, mean_1, mean_0, ps):
     outer = _outer_product_along_first_dim(adjustment)
     kernel_b = outer.mean(axis=0)
 
-    kernel = kernel_a + kernel_b
-    return kernel
+    return kernel_a + kernel_b
 
 
 def _outer_product_along_first_dim(arr):
@@ -195,12 +228,14 @@ def _outer_product_along_first_dim(arr):
 
     """
     products = [np.outer(a, a) for a in arr]
-    out = np.array(products)
-    return out
+    return np.array(products)
 
 
 def _get_propensity_score_pipe(
-    learner, learner_kwargs, feature_transform, fit_intercept
+    learner,
+    learner_kwargs,
+    feature_transform,
+    fit_intercept,
 ):
     implemented_learners = {
         "LogisticRegression": LogisticRegression,
@@ -228,17 +263,19 @@ def _get_propensity_score_pipe(
         )
         raise ValueError(msg)
 
-    pipe = Pipeline(
+    return Pipeline(
         steps=[
             ("feature_transform", feature_transform),
             ("learner", learner(fit_intercept=fit_intercept, **learner_kwargs)),
-        ]
+        ],
     )
-    return pipe
 
 
 def _get_conditional_mean_pipe(
-    learner, learner_kwargs, feature_transform, fit_intercept
+    learner,
+    learner_kwargs,
+    feature_transform,
+    fit_intercept,
 ):
     implemented_learners = {
         "LinearRegression": LinearRegression,
@@ -260,10 +297,9 @@ def _get_conditional_mean_pipe(
         )
         raise ValueError(msg)
 
-    pipe = Pipeline(
+    return Pipeline(
         steps=[
             ("feature_transform", feature_transform),
             ("learner", learner(fit_intercept=fit_intercept, **learner_kwargs)),
-        ]
+        ],
     )
-    return pipe

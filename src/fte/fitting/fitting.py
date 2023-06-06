@@ -1,10 +1,10 @@
 import inspect
 import warnings
-from functools import partial
-from functools import wraps
+from functools import partial, wraps
 
 import numpy as np
 import pandas as pd
+
 from fte.fitting.doubly_robust import fit_func_on_scalar_doubly_robust
 
 
@@ -26,7 +26,7 @@ def get_fitter(fitter, fitter_kwargs=None):
     else:
         raise ValueError(
             f"Invalid fitter: {fitter}. Must be one of {list(IMPLEMENTED_FITTER)} or a "
-            "callable."
+            "callable.",
         )
 
     args = set(inspect.signature(_fitter).parameters)
@@ -36,7 +36,7 @@ def get_fitter(fitter, fitter_kwargs=None):
     if problematic:
         raise ValueError(
             f"The following mandatory arguments are missing in {_fitter_name}: "
-            f"{problematic}"
+            f"{problematic}",
         )
 
     valid_options = args
@@ -49,11 +49,11 @@ def get_fitter(fitter, fitter_kwargs=None):
     if ignored:
         warnings.warn(
             "The following options were ignored because they are not compatible with "
-            f"{_fitter_name}:\n\n {ignored}"
+            f"{_fitter_name}:\n\n {ignored}",
+            stacklevel=1,
         )
 
-    fitter = wraps(_fitter)(partial(_fitter, **reduced))
-    return fitter
+    return wraps(_fitter)(partial(_fitter, **reduced))
 
 
 def _fit_func_on_scalar(data=None, *, x=None, y=None, fit_intercept=True):
@@ -66,14 +66,14 @@ def _fit_func_on_scalar(data=None, *, x=None, y=None, fit_intercept=True):
 
     if isinstance(x, pd.DataFrame):
         columns = x.columns
-        x = x.values
+        x = x.to_numpy()
 
     if fit_intercept:
         x = np.column_stack((np.ones(len(x)), x))
 
     if isinstance(y, pd.DataFrame):
         index = y.columns.astype(np.int64).rename("time")
-        y = y.values
+        y = y.to_numpy()
 
     coef, *_ = np.linalg.lstsq(x, y, rcond=None)
     coef = coef.T
@@ -84,5 +84,4 @@ def _fit_func_on_scalar(data=None, *, x=None, y=None, fit_intercept=True):
     if columns is not None or index is not None:
         slopes = pd.DataFrame(slopes, columns=columns, index=index)
 
-    out = {"intercept": intercept, "slopes": slopes, "data": data}
-    return out
+    return {"intercept": intercept, "slopes": slopes, "data": data}
