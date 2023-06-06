@@ -43,10 +43,6 @@ repos:
     hooks:
       - id: black
         language_version: python3.10
-  - repo: https://github.com/asottile/blacken-docs
-    rev: 1.13.0
-    hooks:
-      - id: blacken-docs
   - repo: https://github.com/PyCQA/docformatter
     rev: v1.5.1
     hooks:
@@ -74,13 +70,6 @@ repos:
         additional_dependencies: [mdformat-gfm, mdformat-black]
         args: [--wrap, '88']
         files: (README\.md)
-  - repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.16
-    hooks:
-      - id: mdformat
-        additional_dependencies: [mdformat-myst, mdformat-black]
-        args: [--wrap, '88']
-        files: (docs/.)
   - repo: https://github.com/asottile/setup-cfg-fmt
     rev: v2.2.0
     hooks:
