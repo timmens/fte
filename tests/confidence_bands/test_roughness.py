@@ -16,10 +16,20 @@ def test_roughness_func(length_scale, num, interpolator):
         grid=grid,
         cov=cov,
         interpolator=interpolator,
+        info=True,
     )
     expected = 1 / length_scale  # can be derived from structure of RBF
     got = roughness_func(grid)
     aaae(expected, got, decimal=5)
+
+
+def test_roughness_func_invalid_interpolator():
+    with pytest.raises(ValueError, match="Interpolator must be in"):
+        get_roughness_func(
+            grid=np.linspace(0, 1, num=10),
+            cov=np.ones((10, 10)),
+            interpolator="NotImplemented",
+        )
 
 
 def test_cov_to_corr():

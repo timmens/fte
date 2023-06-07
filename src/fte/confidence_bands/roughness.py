@@ -13,8 +13,8 @@ def get_roughness_func(
     Args:
         grid (np.ndarray): Time grid. Default None.
         cov (np.ndarray): The estimated covariance matrix.
-        interpolator (str or callable): The interpolator which is used to smooth the
-            covariance matrix. Implemented are {"RectBivariateSpline"}. Default is
+        interpolator (str): The interpolator which is used to smooth the covariance
+            matrix. Implemented are {"RectBivariateSpline"}. Default is
             RectBivariateSpline.
         info (bool): Add extra information to output function.
 
@@ -31,10 +31,8 @@ def get_roughness_func(
     if isinstance(interpolator, str) and interpolator in built_in_interpolator:
         interpolator = built_in_interpolator[interpolator]
         _name = interpolator
-    elif callable(interpolator):
-        _name = interpolator.__name__
     else:
-        msg = f"Interpolator must be callable or in {set(built_in_interpolator)}."
+        msg = f"Interpolator must be in {set(built_in_interpolator)}."
         raise ValueError(msg)
 
     # Compute roughness function

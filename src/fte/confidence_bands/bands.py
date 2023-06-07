@@ -152,11 +152,12 @@ def _confidence_band_from_roughness(
             **numerical_options,
         )
     else:
-        adjustment = _nonconstant_band_adjustment(
+        adjustment = _non_constant_band_adjustment(
             roughness_func,
             alpha=alpha,
             distribution=distribution,
             grid=grid,
+            n_int=n_int,
         )
 
     lower = estimate - adjustment * np.sqrt(np.diag(cov))
@@ -315,7 +316,7 @@ def _get_moment_generating_func(distribution):
 # ======================================================================================
 
 
-def _nonconstant_band_adjustment(
+def _non_constant_band_adjustment(
     roughness_func: callable,
     alpha: float,
     distribution: Distributions,
@@ -348,7 +349,7 @@ def _nonconstant_band_adjustment(
         coef[j] = root
 
     critical_values = pwl_func(grid, coef=coef, knots=knots)  # noqa: F841
-    raise NotImplementedError("This band adjument is not properly implemented yet.")
+    raise NotImplementedError("Non-constant bands are not implemented yet.")
 
 
 def _get_root_func_j(j, coef, n_int, pwl_func, knots, tau_f, distribution, alpha):
