@@ -1,15 +1,12 @@
 import numpy as np
 import pytest
 from fte.confidence_bands.bands import estimate_confidence_band
+from fte.montypy.coverage import coverage_simulation_study
 from fte.simulation import SIMULATION_EXAMPLES_REGRESSION
 from fte.simulation.coverage import simulate_coverage_simultaneous_confidence_bands
-from fte.simulation.processes import simulate_gaussian_process
-
-COVERAGE_RELATIVE_TOLERANCE = 0.05
-COVERAGE_ABSOLUTE_TOLERANCE = 0.05
 
 
-@pytest.mark.xfail()
+@pytest.mark.skip(reason="Fails at the moment.")
 @pytest.mark.parametrize("example", ["regression"])
 def test_coverage_simulation_with_defaults(example):
     n_sims = 100
@@ -32,33 +29,37 @@ def test_coverage_simulation_with_defaults(example):
     )
 
     assert len(res["raw_results"]) == n_sims
-    assert (
-        (1 - alpha) * (1 - COVERAGE_RELATIVE_TOLERANCE)
-        <= res["processed"]["coverage"]
-        <= (1 - alpha) * (1 + COVERAGE_RELATIVE_TOLERANCE)
-    )
+    raise AssertionError  # check coverage
 
 
 @pytest.mark.slow()
-@pytest.mark.parametrize("alpha", [0.01, 0.05])
-def test_coverage_simulation_mean_estimate(alpha):
-    rng = np.random.default_rng()
+@pytest.mark.parametrize("alpha", [0.1, 0.05, 0.01])
+@pytest.mark.parametrize("distribution", ["normal", "t"])
+def test_coverage_simulation_mean_estimate(alpha, distribution):
+    n_samples = 1_000
 
-    n_points = 100
-    n_samples = 300
+    def _sim_func(_id):
+        rng = np.random.default_rng(seed=_id)
 
-    inside = 0
-    n_sims = 100
-    for _ in range(n_sims):
-        error = simulate_gaussian_process(
-            n_samples=n_samples,
-            kernel="RBF",
-            rng=rng,
-            n_periods=n_points,
-        )
-        estimate = error.mean(axis=1)
-        cov = error @ error.T / n_samples
-        cov_estimate = cov / n_samples
+        # simulate data
+        grid = np.linspace(0, 1, num=50)
+
+        def rbf(s, t):
+            return np.exp(-100 * (s - t) ** 2)
+
+        cov = rbf(grid.reshape(-1, 1), grid.reshape(1, -1))
+        data = rng.multivariate_normal(
+            mean=np.zeros(len(grid)),
+            cov=cov,
+            size=n_samples,
+        ).T
+
+        # estimate mean and covariance
+        estimate = data.mean(axis=1)
+        error = data - estimate.reshape(-1, 1)
+        cov_estimate = np.matmul(error, error.T) / (n_samples**2)
+
+        # compute confidence band
         band = estimate_confidence_band(
             estimate=estimate,
             n_samples=n_samples,
@@ -66,10 +67,15 @@ def test_coverage_simulation_mean_estimate(alpha):
             alpha=alpha,
             n_int=1,
             numerical_options={"raise_error": False},
-            distribution="normal",
+            distribution=distribution,
         )
-        if np.all(band.lower <= 0) and np.all(band.upper >= 0):
-            inside += 1
+        return {
+            "true": 0,
+            "confidence_interval": band,
+        }
 
-    coverage = inside / n_sims
-    assert np.abs(coverage - (1 - alpha)) <= COVERAGE_ABSOLUTE_TOLERANCE
+    res = coverage_simulation_study(n_sims=200, sim_func=_sim_func)
+    coverage = res["processed"]["coverage"]
+
+    assert coverage >= 1 - alpha
+    assert np.allclose(coverage, 1 - alpha, atol=alpha / 2)

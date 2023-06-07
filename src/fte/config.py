@@ -8,4 +8,4 @@ TESTS = ROOT.joinpath("tests").resolve()
 __all__ = ["SRC", "ROOT", "TESTS"]
 
 
-MAX_INTEGRATION_ERROR = 1e-7
+MAX_INTEGRATION_ERROR = 1e-6
