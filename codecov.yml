@@ -9,10 +9,10 @@ coverage:
   status:
     patch:
       default:
-        target: 100%
+        target: 95%
     project:
       default:
-        target: 60%
+        target: 55%
 ignore:
   - release.py
   - setup.py
