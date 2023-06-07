@@ -2,9 +2,10 @@ from functools import partial
 from typing import Any, NamedTuple, Union
 
 import numpy as np
-from scipy import integrate, interpolate, optimize
+from scipy import integrate, optimize
 from scipy.stats import norm, t
 
+from fte.confidence_bands.roughness import get_roughness_func
 from fte.config import MAX_INTEGRATION_ERROR
 from fte.covariance_operator import cov_from_residuals
 from fte.simulation.simulate import SimulatedData
@@ -100,7 +101,7 @@ def estimate_confidence_band(
     # Estimate roughness function
     # ==================================================================================
     grid = np.linspace(0, 1, num=n_points) if grid is None else grid
-    roughness_func = _get_roughness_func(grid, cov=cov)
+    roughness_func = get_roughness_func(grid, cov=cov)
 
     # Estimate confidence band
     # ==================================================================================
@@ -165,63 +166,6 @@ def _confidence_band_from_roughness(
 
 
 # ======================================================================================
-# Roughness function
-# ======================================================================================
-
-
-def _get_roughness_func(
-    grid: np.ndarray,
-    cov: np.ndarray,
-    interpolator: str = "RectBivariateSpline",
-    info: bool = False,
-):
-    """Get the parameter roughness function.
-
-    Args:
-        grid (np.ndarray): Time grid. Default None.
-        cov (np.ndarray): The estimated covariance matrix.
-        interpolator (str or callable): The interpolator which is used to smooth
-            the covariance matrix. Implemented are {"RectBivariateSpline"}.
-            Default is RectBivariateSpline.
-        info (bool): Add extra information to output function.
-
-    Returns:
-        callable: The parameter roughness function.
-
-    """
-    # Validate inputs
-    # ==================================================================================
-    built_in_interpolator = {
-        "RectBivariateSpline": interpolate.RectBivariateSpline,
-    }
-
-    if isinstance(interpolator, str) and interpolator in built_in_interpolator:
-        interpolator = built_in_interpolator[interpolator]
-        _name = interpolator
-    elif callable(interpolator):
-        _name = interpolator.__name__
-    else:
-        msg = f"Interpolator must be callable or in {built_in_interpolator.keys()}."
-        raise ValueError(msg)
-
-    # Compute roughness function
-    # ==================================================================================
-    corr = _cov_to_corr(cov)
-    smooth_corr = interpolator(grid, grid, corr)
-    smooth_corr_deriv = smooth_corr.partial_derivative(dx=1, dy=1)
-
-    @np.vectorize
-    def _roughness(t):
-        return np.sqrt(smooth_corr_deriv(t, t))
-
-    if info:
-        info = {"smooth_corr": smooth_corr, "interpolator_name": _name}
-        _roughness.info = info
-
-    return _roughness
-
-
-# ======================================================================================
 # Constant band
 # ======================================================================================
 
@@ -238,7 +182,7 @@ def _constant_band_adjustment(
 ):
     """Get the band adjustment for the constant case.
 
-    This is equivalent to standard Kac-Rice band adjustment.
+    This is equivalent to the standard Kac-Rice band adjustment.
 
     Args:
         roughness_func (callable): The roughness function.
@@ -487,11 +431,3 @@ def _get_piecewise_linear_function(n_int):
 
 def _any_none(*args):
     return bool([arg for arg in args if arg is None])
-
-
-def _cov_to_corr(cov: np.ndarray):
-    standard_errors = np.sqrt(np.diag(cov))
-    corr = cov.copy()
-    corr /= standard_errors.reshape(1, -1)
-    corr /= standard_errors.reshape(-1, 1)
-    return corr
