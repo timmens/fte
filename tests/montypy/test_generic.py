@@ -17,6 +17,16 @@ def test_get_evaluator(show_progress, n_cores, evaluator):
     assert [1, 2, 3] == got
 
 
+def test_get_evaluator_error():
+    with pytest.raises(ValueError, match="evaluator needs to be in {'loop', 'joblib'}"):
+        get_evaluator(
+            evaluator="NotImplemented",
+            func=lambda x: x,
+            n_cores=1,
+            show_progress=True,
+        )
+
+
 def test_generic_simulation_study():
     def _results_processor(_list):
         return [x**2 for x in _list]

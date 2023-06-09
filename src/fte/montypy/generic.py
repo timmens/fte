@@ -1,5 +1,4 @@
 import contextlib
-from functools import partial
 
 import joblib
 from joblib import Parallel, delayed
@@ -55,16 +54,8 @@ def get_evaluator(evaluator, *, func, n_cores, show_progress):
                     delayed(func)(**params) for params in params_list
                 )
 
-    elif callable(evaluator):
-        _evaluator = partial(
-            evaluator,
-            sim_func=func,
-            n_cores=n_cores,
-            show_progress=show_progress,
-        )
     else:
-        msg = "evaluator needs to be either callable or in {'loop', 'joblib'}."
-        raise ValueError(msg)
+        raise ValueError("evaluator needs to be in {'loop', 'joblib'}.")
     return _evaluator
 
 
