@@ -107,8 +107,7 @@ def plot_functional_sample(
     if color_discrete_sequence is None:
         update_traces_kwargs["line_color"] = "black"
     fig = fig.update_traces(**update_traces_kwargs)
-    fig = fig.update_layout(showlegend=False)
-    return fig
+    return fig.update_layout(showlegend=False)
 
 
 def plot_df_with_time_axis(data):
