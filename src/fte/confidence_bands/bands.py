@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Any, NamedTuple, Union
+from typing import Any, NamedTuple, Optional, Union
 
 import numpy as np
 from scipy import integrate, optimize
@@ -22,18 +22,18 @@ class Band(NamedTuple):
 
 
 def estimate_confidence_band(
-    result: dict = None,
+    result: Optional[dict] = None,
     estimate: np.ndarray = None,
     cov: np.ndarray = None,
-    coef_id: int = None,
+    coef_id: Optional[int] = None,
     data: SimulatedData = None,
-    n_samples: int = None,
+    n_samples: Optional[int] = None,
     cov_type: str = "homoskedastic",
     alpha: float = 0.05,
     distribution: str = "t",
     n_int: int = 1,
     grid: np.ndarray = None,
-    numerical_options: dict[str, Any] = None,
+    numerical_options: Optional[dict[str, Any]] = None,
 ):
     """Estimate confidence band from covariance information.
 
@@ -178,7 +178,7 @@ def _constant_band_adjustment(
     grid: np.ndarray,
     root_method: str = "brentq",
     root_bracket: tuple[float] = (0.0, 15.0),
-    root_options: dict[str, Any] = None,
+    root_options: Optional[dict[str, Any]] = None,
     raise_error: bool = True,
 ):
     """Get the band adjustment for the constant case.
