@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from functools import partial
-from typing import Any, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 import numpy as np
 from scipy import integrate, optimize
@@ -8,9 +10,11 @@ from scipy.stats import norm, t
 from fte.confidence_bands.roughness import get_roughness_func
 from fte.config import MAX_INTEGRATION_ERROR
 from fte.covariance_operator import cov_from_residuals
-from fte.simulation.simulate import SimulatedData
 
-Distributions = Union[norm, t]
+if TYPE_CHECKING:
+    from fte.simulation.simulate import SimulatedData
+
+Distributions = type(norm) | type(t)
 
 
 class Band(NamedTuple):
@@ -22,18 +26,18 @@ class Band(NamedTuple):
 
 
 def estimate_confidence_band(
-    result: Optional[dict] = None,
+    result: dict | None = None,
     estimate: np.ndarray = None,
     cov: np.ndarray = None,
-    coef_id: Optional[int] = None,
+    coef_id: int | None = None,
     data: SimulatedData = None,
-    n_samples: Optional[int] = None,
+    n_samples: int | None = None,
     cov_type: str = "homoskedastic",
     alpha: float = 0.05,
     distribution: str = "t",
     n_int: int = 1,
     grid: np.ndarray = None,
-    numerical_options: Optional[dict[str, Any]] = None,
+    numerical_options: dict[str, Any] | None = None,
 ):
     """Estimate confidence band from covariance information.
 
@@ -178,7 +182,7 @@ def _constant_band_adjustment(
     grid: np.ndarray,
     root_method: str = "brentq",
     root_bracket: tuple[float] = (0.0, 15.0),
-    root_options: Optional[dict[str, Any]] = None,
+    root_options: dict[str, Any] | None = None,
     raise_error: bool = True,
 ):
     """Get the band adjustment for the constant case.
