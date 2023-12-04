@@ -1,7 +1,6 @@
 from typing import NamedTuple
 
 import numpy as np
-import pandas as pd
 from sklearn.base import is_classifier, is_regressor
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
 from sklearn.model_selection import train_test_split
@@ -28,11 +27,9 @@ class TreatmentData(NamedTuple):
 
 
 def fit_func_on_scalar_doubly_robust(
-    data=None,
-    *,
-    x=None,
-    y=None,
-    t=None,
+    x,
+    y,
+    t,
     fit_intercept=True,
     mean_learner="RidgeCV",
     mean_learner_kwargs=None,
@@ -41,37 +38,6 @@ def fit_func_on_scalar_doubly_robust(
     tol=1e-6,
     seed=None,
 ):
-    # ==================================================================================
-    # Prepare data inputs
-    # ==================================================================================
-
-    if data is not None:
-        y = data.y
-        x = data.x
-        t = data.treatment_status
-
-    index = None
-
-    if isinstance(x, pd.DataFrame):
-        x = x.to_numpy()
-
-    if isinstance(y, pd.DataFrame):
-        index = y.columns.astype(np.int64).rename("time")
-        y = y.to_numpy()
-
-    if isinstance(t, pd.DataFrame):
-        t = t.to_numpy()
-
-    t = t.flatten()
-
-    # ==================================================================================
-    # Default kwargs
-    if ps_learner_kwargs is None:
-        ps_learner_kwargs = {}
-
-    if mean_learner_kwargs is None:
-        mean_learner_kwargs = {}
-
     # ==================================================================================
     # Fit nuisance functions
     # ==================================================================================
@@ -180,15 +146,11 @@ def fit_func_on_scalar_doubly_robust(
     effect = 0.5 * (effect_0 + effect_1)
     kernel = 0.5 * (kernel_0 + kernel_1)
 
-    # ==================================================================================
-    # Results processing
-    # ==================================================================================
-
-    if index is not None:
-        effect = pd.DataFrame(effect, columns=["value"], index=index)
-        kernel = pd.DataFrame(kernel, columns=index, index=index)
-
-    return {"treatment_effect": effect, "cov": kernel, "ps": ps, "n_samples": len(y)}
+    return {
+        "treatment_effect": effect,
+        "kernel": kernel,
+        "ps": ps,
+    }
 
 
 def _compute_treatment_effect(y, t, mean_1, mean_0, ps):

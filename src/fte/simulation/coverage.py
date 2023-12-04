@@ -1,5 +1,5 @@
 from fte.confidence_bands.bands import estimate_confidence_band
-from fte.fitting.fitting import get_fitter
+from fte.fitting import get_fitter
 from fte.montypy import coverage_simulation_study
 from fte.simulation.simulate import get_data_simulator
 
