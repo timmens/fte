@@ -31,3 +31,4 @@ dependencies:
   - pip:
       - -e .
       - blackcellmagic
+      - jax[cpu]

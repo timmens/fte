@@ -1,6 +1,7 @@
 include CITATION
 
 recursive-include src *.py
+recursive-exclude src *.ipynb
 
 exclude *.yaml
 exclude *.yml
