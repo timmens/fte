@@ -13,6 +13,7 @@ dependencies:
   - numpy
   - jupyterlab
   - scikit-learn
+  - scikit-fda
   - tqdm
   - matplotlib
 
