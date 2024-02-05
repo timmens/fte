@@ -254,7 +254,7 @@ def _get_propensity_score_pipe(
     learner_kwargs = {**kwargs, **learner_kwargs}
 
     if isinstance(learner, str):
-        learner = implemented_learners.get(learner, None)
+        learner = implemented_learners.get(learner)
 
     if not is_classifier(learner):
         msg = (
@@ -288,7 +288,7 @@ def _get_conditional_mean_pipe(
     learner_kwargs = {**kwargs, **learner_kwargs}
 
     if isinstance(learner, str):
-        learner = implemented_learners.get(learner, None)
+        learner = implemented_learners.get(learner)
 
     if not is_regressor(learner):
         msg = (
